@@ -1,13 +1,4 @@
-# Sample Data -------------------------------------------------------------
-
-model_structure = list(ar = c(0.8),
-                       ma = c(1))
-X = arima.sim(n = 100, model = model_structure)
-
-Box.test(X,type = "Ljung-Box")
-DFtest
-
-# Other Functions ---------------------------------------------------------
+# ACF plot in ggplot2  ---------------------------------------------------------
 
 #Note that this code is heavily based on the following code:
 #https://github.com/dewittpe/qwraps2/blob/master/R/qacf.R#L79
@@ -39,10 +30,10 @@ ggacf = function(x, conf_level = 0.95, type = "acf"){
 }
 
 
-# Descriptive Statistics Function -----------------------------------------
+# Descriptive Plots Function -----------------------------------------
 
-Descriptive_Plots = function(timeseries, dates, lags, draw = TRUE){
-  library(stats);library(tseries);library(qwraps2);library(ggplot2);library(grid);library(gridExtra)
+Descriptive_Plots = function(timeseries, dates, draw = TRUE){
+  library(stats);library(tseries);library(ggplot2);library(grid);library(gridExtra)
   if (missing(dates)){
     dates = 1:length(timeseries)
   }
@@ -55,4 +46,57 @@ Descriptive_Plots = function(timeseries, dates, lags, draw = TRUE){
   grid.arrange(Plot_Data, Plot_QQ, Plot_ACF, Plot_Hist, nrow = 2, ncol=2)
 }
 
-Descriptive_Plots(X2017$DK1, X2017$X__1, 1)
+# Descriptive Statistics Function ------------------------------------
+acf
+Descriptive_Statistics = function(timeseries, lags, alpha = 0.05, tex = F){
+  library(tseries); library(stats)
+  
+  #Augmented Dickey Fueller Test: 
+  ADF = adf.test(timeseries)
+  Statistics = c(round(ADF$statistic[[1]],3))
+  Pvalue = c(round(ADF$p.value[[1]],3))
+  Names = c("Augmented Dickey Fueller")
+  if (ADF$p.value[[1]]>alpha){
+    Reject = c("No")
+  }else{
+    Reject = c("Yes")
+  }
+  
+  #Jarque-Bera Test
+  JB = jarque.bera.test(timeseries)
+  Statistics = c(Statistics, round(JB$statistic[[1]],3))
+  Pvalue = c(Pvalue, round(JB$p.value[[1]],3))
+  Names = c(Names, "Jarque-Bera Test")
+  if (JB$p.value[[1]]>alpha){
+    Reject = c(Reject, "No")
+  }else{
+    Reject = c(Reject, "Yes")
+  }
+  
+  
+  #Ljung-Box test
+  LB_result = list()
+  for (i in lags){
+    LB_result[[paste("Lag",i,sep = " ")]] = Box.test(timeseries, lag = i, type = "Ljung-Box")
+    Names = c(Names, paste("Ljung-Box lag:",i,sep = " "))
+  }
+  for (j in LB_result){
+    Statistics = c(Statistics, round(j$statistic[[1]],3))
+    Pvalue = c(Pvalue, round(j$p.value[[1]],3))
+    if (j$p.value[[1]]>alpha){
+      Reject = c(Reject, "No")
+    }else{
+      Reject = c(Reject, "Yes")
+    }
+  }
+  
+  Data_Table = data.frame('Test-Type' = Names, 'Statistic' = Statistics, 'p-value' = Pvalue, 'Reject Null' = Reject)
+  
+  if (tex == T){
+    print(xtable(Data_Table))
+  }
+  
+  return(Data_Table)
+}
+
+

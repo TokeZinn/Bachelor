@@ -37,17 +37,21 @@ Descriptive_Plots = function(timeseries, dates, draw = TRUE){
   if (missing(dates)){
     dates = 1:length(timeseries)
   }
+  
+  #Theme = theme(plot.title = element_text(family = "Trebuchet MS", color="#666666", face="bold", hjust=0)) +
+  #  theme(axis.title = element_text(family = "Trebuchet MS", color="#666666", face="bold")) 
+  
   Data = data.frame(dates,timeseries)
-  Plot_Data = ggplot(Data, aes(dates, timeseries)) + geom_line(colour="#211a52") + xlab("") + ylab("Price")  
-  Plot_QQ = ggplot(Data, aes(sample = timeseries)) + stat_qq(colour = "#211a52") + ylab("Sample") + xlab("Theoretical")
-  Plot_ACF = ggacf(timeseries)
+  Plot_Data = ggplot(Data, aes(dates, timeseries)) + geom_line(colour="#211a52") + xlab("") + ylab("Price") + ggtitle("Price vs. Time") 
+  Plot_PACF = ggacf(timeseries, type ="pacf") + ggtitle("Partial Autocorrelation Plot")
+  Plot_ACF = ggacf(timeseries) + ggtitle("Autocorrelation Plot") 
   Plot_Hist = ggplot(Data, aes(timeseries)) + geom_histogram(fill ="white" ,col = "#211a52",bins = 50) + 
-    xlab ("Price") + ylab("Observations") 
-  grid.arrange(Plot_Data, Plot_QQ, Plot_ACF, Plot_Hist, nrow = 2, ncol=2)
+    xlab ("Price") + ylab("Observations") + ggtitle("Histogram of Prices") 
+  grid.arrange(Plot_Data, Plot_Hist, Plot_ACF, Plot_PACF , nrow = 2, ncol=2)
 }
 
 # Descriptive Statistics Function ------------------------------------
-acf
+
 Descriptive_Statistics = function(timeseries, lags, alpha = 0.05, tex = F){
   library(tseries); library(stats)
   
@@ -98,5 +102,7 @@ Descriptive_Statistics = function(timeseries, lags, alpha = 0.05, tex = F){
   
   return(Data_Table)
 }
+
+
 
 
